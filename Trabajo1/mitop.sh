@@ -35,6 +35,14 @@
 
   	#ls will retrieve all the directories, but we need to use grep in order to filter 
   	#only the numeric ones.
+  	
+  	read utime idltime <  "/proc/uptime"
+  	
+  	
+  	read cpu a b c d e f g h i j< "/proc/stat"
+  	
+  	let "firstTotal= $a + $b + $c + $d + $e + $f + $g + $h + $i + $j"
+  	
 	processCommand=$(ls /proc -t | grep '^[0-9]*$');
 
 	#And then we will save it in an array
@@ -73,12 +81,18 @@
 
 		totalTime=0
 	
-		let " totalTime= ${statData[14]} + ${statData[15]}"
+		let " totalTime= ${statData[13]} + ${statData[14]}"
 		
 		totalTimes1+=("$totalTime")
 	done 	
 
 	sleep 1
+	
+	read cpu a b c d e f g h i j < "/proc/stat"
+  	
+  	let "secondTotal= $a + $b + $c + $d + $e + $f + $g + $h + $i + $j"
+  	
+  	let "diffTime = $secondTotal - $firstTotal"
 	
 	j=0
 	
@@ -103,23 +117,28 @@
 
 		totalTime=0
 	
-		let " totalTime= ${statData[14]} + ${statData[15]}"
+		let " totalTime= ${statData[13]} + ${statData[14]}"
 		
 		
 		#Getting the diff of totalTime after sleep 1s 
-
-		cpuPercentage=$(bc <<< "scale=2;  $totalTime - ${totalTimes1[j]}")
 		
-		#Since getconf CLK_TCK = 100 this is used in order to get %
-		cpuPercentage=$(bc <<< "scale=2; $cpuPercentage / 10")
+		let "cpuPercentage = $totalTime - ${totalTimes1[j]}"
+	
 		
-		totalCPU=$(bc <<< "scale=2; $cpuPercentage + $totalCPU")
+		let "cpuPercentage = 100 *  $cpuPercentage / $diffTime  "
+		
+		
+		let "totalCPU = $cpuPercentage + $totalCPU"
+		
 		
 		#Memory PID is expressed in bytes, so we convert it to kb
-		memoryPID=`expr ${statData[22]} / 1024`
+		
+		let "memoryPID =  ${statData[22]} / 1024 "
 	  	
 	  	#And with total mem we get a %
-	  	memPercentage=$(bc <<< "scale=2;  $memoryPID / $totalMemory * 100")
+	  	
+	  	let "memPercentage = 100 *  $memoryPID / $totalMemory "
+	  
 	
 		#getting username through user id
 		uid=$(awk '/^Uid:/{print $2}' /proc/"$i/"status)
@@ -135,7 +154,12 @@
 	done 
 	
 	clear
-
+	
+	if [ $totalCPU -gt 100 ] # integer ops can make $totalCPU reach a value gt 100, so we adjust it 
+	
+	then
+		let "totalCPU = 100"
+	fi
 	#In the standard output we print header data
 	printHeaderData "${#processArray[@]}" "$totalCPU";
 	
