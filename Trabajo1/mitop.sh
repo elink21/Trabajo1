@@ -58,6 +58,8 @@
  	#totalTimes1() is the first read of CPU  times
 	totalTimes1=() 	
 	
+	echo "Primer lectura de tiempos"
+	
 	#Then we need to fill totalTimes1() and wait 1s
 	for i in ${processArray[@]}; do
 	
@@ -79,6 +81,10 @@
 	sleep 1
 	
 	j=0
+	
+	clear 
+	
+	echo "Segunda lectura de tiempos y creacion de pidData.txt..."
 	
 	
 	#Total CPU is the summatory of each PID's CPU percentage
@@ -127,6 +133,8 @@
 		
 		let "j= $j + 1"
 	done 
+	
+	clear
 
 	#In the standard output we print header data
 	printHeaderData "${#processArray[@]}" "$totalCPU";
@@ -140,6 +148,7 @@
 #end auxiliar functions section
 
 #Cleaning auxiliar file
+echo "Limpiando archivo pidData.txt"
 truncate -s 0 "pidData.txt"
 
 clear
@@ -147,7 +156,7 @@ clear
 printProcessData
 
 #We use this in order to sort information by %CPU in reverse order.
-sort -nrk 4 /home/sistemas/data.txt | head -n 10
+sort -nrk 4 pidData.txt | head -n 10
 
 
 
