@@ -131,7 +131,7 @@
 		let "totalCPU = $cpuPercentage + $totalCPU"
 		
 		
-		#Memory PID is expressed in bytes, so we convert it to kb
+		#Memory PID is expressed in bytes, so we need to  convert it to kb
 		
 		let "memoryPID =  ${statData[22]} / 1024 "
 	  	
@@ -181,7 +181,6 @@ printProcessData
 
 #We use this in order to sort information by %CPU in reverse order.
 sort -nrk 4 pidData.txt | head -n 10
-
 
 
 
